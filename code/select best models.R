@@ -1,11 +1,11 @@
 
-lastd<-"7/20"  #the date of doing inseason estimate (last day is 7/30)
+lastd<-"7/14"  #the date of doing inseason estimate (last day is 7/30)
 
 obs.cpue<-read.table("obsCPUE.csv", sep = ",", header=T)#input 2021 observed daily cpue from test fishery.table
 coefs<-read.table("NLINCOEF.csv", sep = ",", header=T)#input historic run curve a, b parameters 
 
 #Y=1/(1+exp(-(a+b*d))) #d is day
-#use 1979~2020 historical run timing curve to calculate cumulated proporiton of total run or cpue, y, it is y_yr,d in Equation 5
+#use 1979~2021 historical run timing curve to calculate cumulated proporiton of total run or cpue, y, it is y_yr,d in Equation 5
 #first day is June 24; and last year is July 31.
 firstd<-"6/24"
 n<-as.Date(lastd, format="%m/%d") - as.Date(firstd, format="%m/%d") +1 #total days of test fishery
@@ -56,10 +56,14 @@ m <- na.omit(m)
 m <- with(m, m[order(mse),]) #sorted by MSE
 
 best5<-m[1:5,] #best 5 models with smallest MSE.
-best.yr<-best5$yr
-n.yr<-length(best.yr)
-for ( i in 1: n.yr){
-  best5$yr.mean[i]<-coefs$mean[which(coefs$year==best.yr[i])]
-}  
-best5$mid.run<-as.Date(best5$yr.mean,format="%d-%b")-best5$lag
-best5$mid.run<-with(best5, format(mid.run, format="%m/%d"))
+
+#read daily harvest and escapement
+#calculate catchabily (q) and passage rate(PR_d) as of day d.
+comb2=obs.cpue
+comb2$cum_RUN<-NA
+comb2$cum_RUN[comb2$d ==17]<-676409 #cumulative run by July 10 
+comb2$cum_RUN[comb2$d ==18]<-943717 #cumulative run by July 11
+comb2$cum_RUN[comb2$d ==19]<-932432  #cumulative run by July 12
+comb2$cum_RUN[comb2$d ==21]<-1393660  #cumulative run by July 14
+#Catchability -the fraction of the available population taken by a defined unit of fishing effort
+comb2$q<-with(comb2, ccumCPUE/cum_RUN)
