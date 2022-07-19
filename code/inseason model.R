@@ -16,7 +16,6 @@ m=matrix(NA, nrow=1, ncol=4)
 colnames(m)=c("yr", "lag","total_cpue", "mse") 
 m=as.data.frame(m)
 #mylag<-(10:-10) #from run 10-day early  to run 10-day late.lag of run as early(>0) or late(<0) as 10 days.
-#mylag<-(5:-5)
 mylag<-0 #assume on-time only
 my.yr<-coefs$year #histrical run curves of 1979~2016
 for (yr in my.yr){
