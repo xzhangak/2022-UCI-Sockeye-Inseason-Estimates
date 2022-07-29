@@ -129,3 +129,31 @@ out.D2sub <- out.D2[c("year","lag.x", "mse", "date","ccpuef","cum_RUN","mid.run"
 out.D2sub <- out.D2sub[order(out.D2sub$mse),] #sorted by mse
 
 write.csv(out.D2sub,'totalrun date=7-14.csv')
+
+#Generating the figure of UCI sockeye run size estimates
+run<-read.table("est totalrun.csv", sep = ",", header=T)#input observed daily cpue from test fishery.table
+str(run)
+run$date<-as.Date(run$date, format="%m/%d")
+
+library(tidyverse)
+library(scales)
+library(ggplot2)
+library(ggrepel)
+
+myplot<-ggplot(run, aes(x= date, y = est.total.run)) + 
+  geom_point(color = "blue", size = 2) + 
+  ggtitle("2022 UCI Sockeye Inseason Estimates Using 5 Best Running Curves") +
+  theme(plot.title = element_text(hjust = 0.5))+
+### geom_label_repel or geom_text_repel
+  geom_text_repel(aes(label = year),
+                   size = 2,   # font size in the text labels
+                   box.padding   = 0.05, 
+                   point.padding = 0.05,
+                   max.overlaps = getOption("ggrepel.max.overlaps", default = 20),
+                   segment.color = 'grey50') +
+  scale_x_date("Date") +
+ scale_y_continuous("Est. Total Run", labels = scales::comma)
+
+myplot + theme(axis.text.y = element_text(size = 10))+ # change y-axis text size
+  theme(axis.title.x = element_text(size = 10))+     # change x-axis text size 
+  theme(plot.title = element_text(size = 10)) # change plot title text size
