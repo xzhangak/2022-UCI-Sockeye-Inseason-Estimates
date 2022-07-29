@@ -131,7 +131,7 @@ out.D2sub <- out.D2sub[order(out.D2sub$mse),] #sorted by mse
 write.csv(out.D2sub,'totalrun date=7-14.csv')
 
 #Generating the figure of UCI sockeye run size estimates
-run<-read.table("est totalrun.csv", sep = ",", header=T)#input observed daily cpue from test fishery.table
+run<-read.table("est totalrun.csv", sep = ",", header=T)#input the date file: inseason estimates of UCI sockeye runs
 str(run)
 run$date<-as.Date(run$date, format="%m/%d")
 
