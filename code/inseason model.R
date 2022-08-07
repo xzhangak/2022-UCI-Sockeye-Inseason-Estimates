@@ -1,5 +1,5 @@
 
-lastd<-"7/14"  #the date of doing inseason estimate (last day is 7/30)
+lastd<-"7/30"  #the date of doing inseason estimate (last day is 7/30)
 
 obs.cpue<-read.table("obsCPUE.csv", sep = ",", header=T)#input 2021 observed daily cpue from test fishery.table
 coefs<-read.table("NLINCOEF.csv", sep = ",", header=T)#input historic run curve a, b parameters 
@@ -128,7 +128,7 @@ out.D2 <- out.D2[c("year","lag.x", "mse", "date", "ccumCPUE.x","ccpuef","cum_RUN
 out.D2sub <- out.D2[c("year","lag.x", "mse", "date","ccpuef","cum_RUN","mid.run","est.total.run","remaining.run")]
 out.D2sub <- out.D2sub[order(out.D2sub$mse),] #sorted by mse
 
-write.csv(out.D2sub,'totalrun date=7-14.csv')
+write.csv(out.D2sub,'est totalrun.csv')
 
 #Generating the figure of UCI sockeye run size estimates
 run<-read.table("est totalrun.csv", sep = ",", header=T)#input the date file: inseason estimates of UCI sockeye runs
