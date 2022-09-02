@@ -1,23 +1,22 @@
-
-lastd<-"7/30"  #the date of doing inseason estimate (last day is 7/30)
-
-obs.cpue<-read.table("obsCPUE.csv", sep = ",", header=T)#input 2021 observed daily cpue from test fishery.table
+obs.cpue<-read.table("obsCPUE.csv", sep = ",", header=T)#input observed daily cpue from test fishery.table
 coefs<-read.table("NLINCOEF.csv", sep = ",", header=T)#input historic run curve a, b parameters 
-
 #Y=1/(1+exp(-(a+b*d))) #d is day
 #use 1979~2021 historical run timing curve to calculate cumulated proporiton of total run or cpue, y, it is y_yr,d in Equation 5
 #first day is June 24; and last year is July 31.
 firstd<-"6/24"
+lastd<-"7/27" #to do inseason estimate before 7/31, just change "lastd", like "7/20"
+#lastd<-"7/14" 
 n<-as.Date(lastd, format="%m/%d") - as.Date(firstd, format="%m/%d") +1 #total days of test fishery
-n<-as.numeric(n) #total days of test fishery
-day<-rep(1:n)
-y<-rep(NA, n)
+n<-as.numeric(n) #total  days of test fishery
+day<-rep(1:n) 
+y<-rep(NA, n) 
 m=matrix(NA, nrow=1, ncol=4)
-colnames(m)=c("yr", "lag","total_cpue", "mse") 
+colnames(m)=c("yr", "lag","total_cpue", "mse")  
 m=as.data.frame(m)
 #mylag<-(10:-10) #from run 10-day early  to run 10-day late.lag of run as early(>0) or late(<0) as 10 days.
+#mylag<-(5:-5)
 mylag<-0 #assume on-time only
-my.yr<-coefs$year #histrical run curves of 1979~2016
+my.yr<-coefs$year #histrical run curves of 1979~2021
 for (yr in my.yr){
   a<-coefs$a[which(coefs$year==yr)] #take a, b for a particular year
   b<-coefs$b[which(coefs$year==yr)]
@@ -50,26 +49,41 @@ for (yr in my.yr){
     m=rbind(m,la)
   }
 }
-
 m <- na.omit(m) 
-m <- with(m, m[order(mse),]) #sorted by MSE
+#m <- with(m, m[order(yr, mse),]) #sorted by yr and MSE
+m <- with(m, m[order(mse),]) #if only on-time (lag=0) is fitted, sorted by mse only
+#Select minimun MSE wihin group yr (yr is historical years of run timing curves)
+#It is the best lag(time shift) within each of historical curves(1979~2016)
+best.lags<-m[m$mse==ave(m$mse, m$yr,FUN=min),]#select rows with a condition
+best.yr<-best.lags$yr
+n.yr<-length(best.yr) 
+for ( i in 1: n.yr){
+  best.lags$yr.mean[i]<-coefs$mean[which(coefs$year==best.yr[i])]
+}  
+best.lags$mid.run<-as.Date(best.lags$yr.mean,format="%d-%b")-best.lags$lag
+best.lags$mid.run<-with(best.lags, format(mid.run, format="%m/%d"))
+best.lags <- best.lags[c("yr", "yr.mean", "lag","mse","total_cpue","mid.run")]#re-order the column
+best5<-best.lags[1:5,]
 
-best5<-m[1:5,] #best 5 models with smallest MSE.
+write.csv(best.lags,'fitted run curves.csv') 
+write.csv(best5,'best5.csv')
 
 #read daily harvest and escapement
 #calculate catchabily (q) and passage rate(PR_d) as of day d.
 comb2=obs.cpue
 comb2$cum_RUN<-NA
 comb2$cum_RUN[comb2$d ==17]<-676409 #cumulative run by July 10 
-comb2$cum_RUN[comb2$d ==19]<-860646 #cumulative run by July 12
-comb2$cum_RUN[comb2$d ==20]<-955485  #cumulative run by July 13
-comb2$cum_RUN[comb2$d ==21]<-1128042  #cumulative run by July 14
+comb2$cum_RUN[comb2$d ==18]<-943717 #cumulative run by July 11
+comb2$cum_RUN[comb2$d ==19]<-932432  #cumulative run by July 12
+comb2$cum_RUN[comb2$d ==21]<-1393660  #cumulative run by July 14
+
 #Catchability -the fraction of the available population taken by a defined unit of fishing effort
 comb2$q<-with(comb2, ccumCPUE/cum_RUN)
 #Passage rate (PRd), as of day d, 
 #is the expansion factor used to convert CPUE into estimated numbers of salmon passing 
 #the test fishing transect line into UCI
 comb2$pr<-1/comb2$q
+
 #Projection of Total run at the end of season using 5 best run timing models from history
 m=matrix(NA, nrow=1, ncol=5) #inital a data frame from a matrix
 colnames(m)=c("d","year","lag", "ccumCPUE", "ccpuef") 
@@ -130,30 +144,53 @@ out.D2sub <- out.D2sub[order(out.D2sub$mse),] #sorted by mse
 
 write.csv(out.D2sub,'est totalrun.csv')
 
-#Generating the figure of UCI sockeye run size estimates
-run<-read.table("est totalrun.csv", sep = ",", header=T)#input the date file: inseason estimates of UCI sockeye runs
-str(run)
-run$date<-as.Date(run$date, format="%m/%d")
+#format() will change number to character, not good
+#out.Dsub$cum_RUN<-format(out.Dsub$cum_RUN, big.mark=",", scientific=FALSE)
+#out.Dsub$est.total.run<-format(out.Dsub$est.total.run, big.mark=",", scientific=FALSE)
+#out.Dsub$remaining.run<-format(out.Dsub$remaining.run, big.mark=",", scientific=FALSE)
+#table(out.D$mid.run)
+#plot(table(out.D$mid.run))
+#total.run<-out.D$est.total.run[which(out.D$year!= 2015)] #remove the outline
+#summary(total.run) 
+#boxplot(total.run)
 
-library(tidyverse)
-library(scales)
-library(ggplot2)
-library(ggrepel)
 
-myplot<-ggplot(run, aes(x= date, y = est.total.run)) + 
-  geom_point(color = "blue", size = 2) + 
-  ggtitle("2022 UCI Sockeye Inseason Estimates Using 5 Best Running Curves") +
-  theme(plot.title = element_text(hjust = 0.5))+
-### geom_label_repel or geom_text_repel
-  geom_text_repel(aes(label = year),
-                   size = 2,   # font size in the text labels
-                   box.padding   = 0.05, 
-                   point.padding = 0.05,
-                   max.overlaps = getOption("ggrepel.max.overlaps", default = 20),
-                   segment.color = 'grey50') +
-  scale_x_date("Date") +
- scale_y_continuous("Est. Total Run", labels = scales::comma)
+#The code is to calcuate percentage of run remaining by day during inseason 
+#preseason forecasts of 2022 for UCI, Kenai, and Kasilof
+f.uci<-4.373
+f.ke<-2.325
+f.ka<-0.881
 
-myplot + theme(axis.text.y = element_text(size = 10))+ # change y-axis text size
-  theme(axis.title.x = element_text(size = 10))+     # change x-axis text size 
-  theme(plot.title = element_text(size = 10)) # change plot title text size
+run.prop<-read.table("run percentage.csv", sep = ",", header=T)
+#input mean %complete. the date format must be like "7/25"
+#Bob DeCino said they are constant for several years
+
+run.prop$run.uci<-with(run.prop, f.uci* ccum.prop.uci)
+run.prop$run.remain.uci<- with(run.prop, f.uci - run.uci)
+
+run.prop$run.ke<-with(run.prop, f.ke* ccum.prop.ke)
+run.prop$run.remain.ke<-with(run.prop, f.ke - run.ke)
+run.prop$prop.remain.ke<- with(run.prop,run.remain.ke / run.remain.uci)
+
+run.prop$run.ka<-with(run.prop, f.ka * ccum.prop.ka)
+run.prop$run.remain.ka<- with(run.prop, f.ka - run.ka) 
+run.prop$prop.remain.ka<- with(run.prop, run.remain.ka / run.remain.uci)
+
+day<-"7/14" #input a day for an inseason estimate, like "7/1" or "7/20"
+PKd<-run.prop$prop.remain.ke[which(run.prop$Date == day)]#proprotion of Kenai run remaiming in Equation(16)
+PAd<-run.prop$prop.remain.ka[which(run.prop$Date == day)] #proprotion of Kasilof run remaiming
+
+
+#Projecting Kenai River Total Run
+#Read daily Kenai Run data to estimate Kenai Run
+out.D2sub$p.ke<-0.65 #proportion of run remaining that are Kenai sockeye on day D
+out.D2sub$r.ke <- with(out.D2sub, p.ke * remaining.run) #remaining Kenai run to go 
+out.D2sub$p.ka<-0.13 #proportion of run remaining that are Kasilof sockeye on day D
+out.D2sub$r.ka <- with(out.D2sub, p.ka * remaining.run) #remaining Kasilof run to go 
+
+kenai.data<-read.table("KenaiDailyRun2022.csv", sep = ",", header=T)
+kenai.data$Date<-as.Date(kenai.data$Date, format="%m/%d") #there is bug here. need to figure it out
+out.Dsub$cum.run.ke<-kenai.data$cumRun[which(kenai.data$Date==lastd)]
+out.Dsub$Total.run.ke<-with(out.Dsub, r.ke + cum.run.ke)
+
+
