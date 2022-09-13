@@ -29,6 +29,35 @@ out.all$mid.run<-as.Date(out.all$mid.run,format="%m/%d")
 out.all$ontime<-ontime
 out.all$timing<-out.all$mid.run - out.all$ontime
 
+run<-read.table("est totalrun.csv", sep = ",", header=T)#input data of inseason estimates
+str(run)
+run$date<-as.Date(run$date, format="%m/%d")
+
+#Plot a figure of inseason esitmates of UCI run sizes
+library(tidyverse)
+library(scales)
+library(ggplot2)
+library(ggrepel)
+
+myplot<-ggplot(run, aes(x= date, y = est.total.run)) + 
+  geom_point(color = "blue", size = 2) + 
+  ggtitle("2022 UCI Sockeye Inseason Estimates Using 5 Best Running Curves") +
+  theme(plot.title = element_text(hjust = 0.5))+
+### geom_label_repel or geom_text_repel
+  geom_text_repel(aes(label = year),
+                   size = 2,   # font size in the text labels
+                   box.padding   = 0.05, 
+                   point.padding = 0.05,
+                   max.overlaps = getOption("ggrepel.max.overlaps", default = 20),
+                   segment.color = 'grey50') +
+  scale_x_date(name="Date", date_breaks = "2 day", date_labels = "%b%d") +
+ scale_y_continuous("Est. Total Run", labels = scales::comma)
+
+myplot + theme(axis.text.y = element_text(size = 10))+ # change y-axis text size
+  theme(axis.title.x = element_text(size = 10))+     # change x-axis text size 
+  theme(plot.title = element_text(size = 10)) # change plot title text size
+###################Finish the plot##############
+
 #Projecting Kenai River Total Run
 #Read daily Kenai Run data to estimate Kenai Run
 source("propRunleft function.R") #read the function that estimates proportion of remaining runs of Kenai and kasilof
