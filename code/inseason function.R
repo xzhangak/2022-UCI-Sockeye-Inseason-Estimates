@@ -1,7 +1,5 @@
 #function of inseason estimates
-#mydate<-"7/28"
-inseason<-function(mydate=mydate){
-   
+inseason<-function(mydate=mydate){ 
   mydate<-as.Date(mydate,format="%m/%d")
   lastd<-acum.run$date[which(acum.run$date == mydate)] #up to the day to fit OTF data to historical run curves
   lastacum<-acum.run$acumRun[which(acum.run$date == mydate)]
@@ -55,8 +53,7 @@ inseason<-function(mydate=mydate){
     }
   }
   m <- na.omit(m) 
-  #m <- with(m, m[order(yr, mse),]) #sorted by yr and MSE
-  m <- with(m, m[order(mse),]) #if only on-time (lag=0) is fitted, sorted by mse only
+  m <- with(m, m[order(mse),]) # sorted by mse only
   #Select minimun MSE wihin group yr (yr is historical years of run timing curves)
   #It is the best lag(time shift) within each of historical curves(1979~2016)
   best.lags<-m[m$mse==ave(m$mse, m$yr,FUN=min),]#select rows with a condition
@@ -91,20 +88,14 @@ inseason<-function(mydate=mydate){
   m=matrix(NA, nrow=1, ncol=5) #inital a data frame from a matrix
   colnames(m)=c("d","year","lag", "ccumCPUE", "ccpuef") 
   m=as.data.frame(m)
-  #mylag<-(-10:10) #lag of run as early(>0) or late(<0) as 10 days.
-  #mylag<-best.lags$lag #read lags from 5 best models
   mylag<-best5$lag #read lags from 5 best models
-  #my.yr<-coefs$year #histrical run curves of 1979~2016
-  #my.yr<-best.lags$yr #read historical years of 5 best run curve
   my.yr<-best5$yr #read historical years of 5 best run curve
   n.best<-length(my.yr)
   for (i in 1:n.best){ #5 years
     a<-coefs$a[which(coefs$year==my.yr[i])] #take a, b for a particular year
     b<-coefs$b[which(coefs$year==my.yr[i])]
-    #for (lag in mylag){ #
     for (d in 1:n){
-      #run may not on time. lag>0: run early; lag<0: run late
-      y[d]<-1/(1+exp(-a-b*(d+mylag[i])))#cumulated proportion by day d of total cpue (ccum cpue by final day).
+         y[d]<-1/(1+exp(-a-b*(d+mylag[i])))#cumulated proportion by day d of total cpue (ccum cpue by final day).
     }
     yh=cbind(day, y) #cumulative proportion of ccpuef, final day of season's ccpue from historic curve 
     colnames(yh)=c("d", "y") #day and proportion
@@ -135,17 +126,13 @@ inseason<-function(mydate=mydate){
   lastd<-as.Date(lastd,format="%m/%d") #change date format
   out.D<-out[which(out$date == lastd),] #retrieve inseason estimate at day D=lastd; date=lastd
   out.D$date<-with(out.D, format(date, format="%m/%d")) #romove meaningless year value from date
-  #out.D$mid.run<-best.lags$mid.run
-  #out.D$mse<-best.lags$mse
   
   out.D2<-merge(out.D, best5, by.x = "year", by.y="yr")
   
   out.D2$remaining.run<-with(out.D2, round(out.D2$est.total.run - out.D2$cum_RUN))
   out.D2 <- out.D2[c("year","lag.x", "mse", "date", "ccumCPUE.x","ccpuef","cum_RUN","q","pr","mid.run","est.total.run","remaining.run")]
-  #out.D2sub <- out.D2[c("year", "mse", "date","ccpuef","cum_RUN","mid.run","est.total.run","remaining.run")]
   out.D2sub <- out.D2[c("year", "mse", "date","ccumCPUE.x","cum_RUN","ccpuef","pr","mid.run","est.total.run","remaining.run")]
   out.D2sub <- out.D2sub[order(out.D2sub$mse),] #sorted by mse
   
   out.D2sub
-  #out.D2
 }
