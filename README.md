@@ -1,4 +1,4 @@
-The R script is modeling for the inseason estimates of UCI sockeye run size. It includes:
+The R scripts (model function.R and run the model.R) are modeling for the inseason estimates of UCI sockeye run size. It includes:
 1) Fit inseason OTF data (observed CPUE) to historical run timing curves and select the 5 historical curves that fit the inseason OTF data best with least MSE; 
 2) Use the top 5 models to estimate the acumulative CPUE by the end of season; 
 3) With updated inseason run sizes and acumulative CPUE(OTF data) to estimate the passage rate; 
