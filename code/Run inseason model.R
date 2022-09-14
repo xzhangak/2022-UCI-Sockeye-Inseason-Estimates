@@ -28,15 +28,13 @@ ontime<-as.Date(ontime,format="%m/%d")
 out.all$mid.run<-as.Date(out.all$mid.run,format="%m/%d")
 out.all$ontime<-ontime
 out.all$timing<-out.all$mid.run - out.all$ontime
+################ end of UCI inseason estimates of UCI run size#################
 
-run<-read.table("est totalrun.csv", sep = ",", header=T)#input data of inseason estimates
-str(run)
-run$date<-as.Date(run$date, format="%m/%d")
-
-#Plot a figure of inseason esitmates of UCI run sizes
+###Plot a figure of inseason esitmates of UCI run size###################
 library(tidyverse)
 library(ggrepel)
-
+run<-out.all #read inseason estimates of UCI run sizes 
+run$date<-as.Date(run$date, format="%m/%d")
 myplot<-ggplot(run, aes(x= date, y = est.total.run)) + 
   geom_point(color = "blue", size = 2) + 
   ggtitle("2022 UCI Sockeye Inseason Estimates Using 5 Best Running Curves") +
@@ -54,19 +52,17 @@ myplot<-ggplot(run, aes(x= date, y = est.total.run)) +
 myplot + theme(axis.text.y = element_text(size = 10))+ # change y-axis text size
   theme(axis.title.x = element_text(size = 10))+     # change x-axis text size 
   theme(plot.title = element_text(size = 10)) # change plot title text size
-###################Finish the plot##############
+###################Finish the plot of UCI inseason estiamtes of run size #####################
 
-#Projecting Kenai River Total Run
+#####Projecting Kenai River total run####################################
 #Read daily Kenai Run data to estimate Kenai Run
 source("propRunleft function.R") #read the function that estimates proportion of remaining runs of Kenai and kasilof
 prop.run<-propRunleft()
-
 #input Kenai sockeye accumulative run(inseason data)
 counts.ke<-read.table("acumulative run_ke.csv", sep = ",", header=T)
 counts.ke$date<-as.Date(counts.ke$date,format="%d-%b")#convert character to date
 prop.run$date<-as.Date(prop.run$date,format="%m/%d")
 out.all$date<-as.Date(out.all$date,format="%m/%d")
-
 # merge two data frames by date
 total <- merge(out.all, prop.run,by.x= "date", by.y = "date" )
 total<- merge(total, counts.ke, by.x= "date", by.y = "date" )
@@ -74,4 +70,3 @@ total$remaining.ke <- with(total, kenai.propleft * remaining.run) #remaining Ken
 total$remaining.ka <- with(total, kasilof.propleft * remaining.run) #remaining Kasilof run to go 
 total$run.ke<-with(total, acumRun_ke + remaining.ke )
 write.csv(total,'withkenai.csv') 
-
