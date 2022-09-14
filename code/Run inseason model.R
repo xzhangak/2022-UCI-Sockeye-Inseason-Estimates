@@ -1,7 +1,7 @@
 obs.cpue<-read.table("obsCPUE.csv", sep = ",", header=T)#input observed daily cpue from test fishery; inseason OTF data
 acum.run<-read.table("acumulative run.csv", sep = ",", header=T) #input inseason run data
-#acum.run$accumRun<-acum.run$accumRun1 #use accumulative Run from TR2020 worksheet
-acum.run$accumRun<-acum.run$accumRun2 #use accumulative Run including residual drift fisheries
+#acum.run$accumRun<-acum.run$accumRun1 #use acumulative Run from TR2020 worksheet
+acum.run$accumRun<-acum.run$accumRun2 #use acumulative Run including residual drift fisheries
 acum.run$date<-as.Date(acum.run$date,format="%d-%b")#convert character to date
 coefs<-read.table("NLINCOEF.csv", sep = ",", header=T)#input historic run curve a, b parameters 
 
@@ -23,7 +23,9 @@ for (mydate in pred.date){
 out.all <- na.omit(out.all) #removing the NA row
 write.csv(out.all,'est totalrun.csv')
 
-ontime<-"7/17" #set on-time run is 7/17, which is estimated from realtionship between run-timing and SST 
+#set on-time date run is 7/17.
+#This was estimated from realtionship between run-timing and SST. Contact Bob DeCino for more info 
+ontime<-"7/17" 
 ontime<-as.Date(ontime,format="%m/%d")
 out.all$mid.run<-as.Date(out.all$mid.run,format="%m/%d")
 out.all$ontime<-ontime
@@ -53,7 +55,7 @@ myplot + theme(axis.text.y = element_text(size = 10))+ # change y-axis text size
   theme(plot.title = element_text(size = 10)) # change plot title text size
 ##### Finish the plot of UCI inseason estiamtes of run size #####################
 
-##### Projecting Kenai River total run####################################
+##### Projecting Kenai River total run ####################################
 #Read daily Kenai Run data to estimate Kenai Run
 source("propRunleft function.R") #read the function that estimates proportion of remaining runs of Kenai and kasilof
 prop.run<-propRunleft()
@@ -68,4 +70,4 @@ total<- merge(total, counts.ke, by.x= "date", by.y = "date" )
 total$remaining.ke <- with(total, kenai.propleft * remaining.run) #remaining Kenai run will arrive. remaining.run is UCI sockeye as whole 
 total$remaining.ka <- with(total, kasilof.propleft * remaining.run) #remaining Kasilof run to go 
 total$run.ke<-with(total, acumRun_ke + remaining.ke )
-write.csv(total,'withkenai.csv') 
+write.csv(total,'withkenai.csv') # output a data file of total run, together with Kenai sockeye run
