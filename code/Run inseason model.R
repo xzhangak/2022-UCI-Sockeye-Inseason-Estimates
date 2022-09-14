@@ -5,7 +5,7 @@ acum.run$accumRun<-acum.run$accumRun2 #use accumulative Run including residual d
 acum.run$date<-as.Date(acum.run$date,format="%d-%b")#convert character to date
 coefs<-read.table("NLINCOEF.csv", sep = ",", header=T)#input historic run curve a, b parameters 
 
-####initial a dataframe to save inseason estimates #############################
+#### initial a dataframe to save inseason estimates #############################
 out.all=matrix(NA, nrow=1, ncol=10) #inital a data frame from a matrix
 colnames(out.all)=c("year", "mse", "date","ccumCPUE.x","cum_RUN","ccpuef","pr","mid.run","est.total.run","remaining.run")
 out.all=as.data.frame(out.all)
@@ -28,9 +28,9 @@ ontime<-as.Date(ontime,format="%m/%d")
 out.all$mid.run<-as.Date(out.all$mid.run,format="%m/%d")
 out.all$ontime<-ontime
 out.all$timing<-out.all$mid.run - out.all$ontime
-################ end of UCI inseason estimates of UCI run size#################
+################ End of UCI inseason estimates of UCI run size #################
 
-###Plot a figure of inseason esitmates of UCI run size###################
+### Plot a figure of inseason esitmates of UCI run size ###################
 library(tidyverse)
 library(ggrepel)
 run<-out.all #read inseason estimates of UCI run sizes 
@@ -39,7 +39,6 @@ myplot<-ggplot(run, aes(x= date, y = est.total.run)) +
   geom_point(color = "blue", size = 2) + 
   ggtitle("2022 UCI Sockeye Inseason Estimates Using 5 Best Running Curves") +
   theme(plot.title = element_text(hjust = 0.5))+
-### geom_label_repel or geom_text_repel
   geom_text_repel(aes(label = year),
                    size = 2,   # font size in the text labels
                    box.padding   = 0.05, 
@@ -52,9 +51,9 @@ myplot<-ggplot(run, aes(x= date, y = est.total.run)) +
 myplot + theme(axis.text.y = element_text(size = 10))+ # change y-axis text size
   theme(axis.title.x = element_text(size = 10))+     # change x-axis text size 
   theme(plot.title = element_text(size = 10)) # change plot title text size
-###################Finish the plot of UCI inseason estiamtes of run size #####################
+##### Finish the plot of UCI inseason estiamtes of run size #####################
 
-#####Projecting Kenai River total run####################################
+##### Projecting Kenai River total run####################################
 #Read daily Kenai Run data to estimate Kenai Run
 source("propRunleft function.R") #read the function that estimates proportion of remaining runs of Kenai and kasilof
 prop.run<-propRunleft()
