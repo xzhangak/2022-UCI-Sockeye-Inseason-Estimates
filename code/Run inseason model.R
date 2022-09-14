@@ -35,8 +35,6 @@ run$date<-as.Date(run$date, format="%m/%d")
 
 #Plot a figure of inseason esitmates of UCI run sizes
 library(tidyverse)
-library(scales)
-library(ggplot2)
 library(ggrepel)
 
 myplot<-ggplot(run, aes(x= date, y = est.total.run)) + 
