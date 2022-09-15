@@ -55,7 +55,7 @@ myplot + theme(axis.text.y = element_text(size = 10))+ # change y-axis text size
   theme(plot.title = element_text(size = 10)) # change plot title text size
 ##### Finish the plot of UCI inseason estiamtes of run size #####################
 
-##### Projecting Kenai River total run ####################################
+##### Projecting Kenai River sockeye total run ####################################
 #Read daily Kenai Run data to estimate Kenai Run
 source("propRunleft function.R") #read the function that estimates proportion of remaining runs of Kenai and kasilof
 prop.run<-propRunleft()
@@ -71,3 +71,25 @@ total$remaining.ke <- with(total, kenai.propleft * remaining.run) #remaining Ken
 total$remaining.ka <- with(total, kasilof.propleft * remaining.run) #remaining Kasilof run to go 
 total$run.ke<-with(total, acumRun_ke + remaining.ke )
 write.csv(total,'withkenai.csv') # output a data file of total run, together with Kenai sockeye run
+
+######## Plot Kenai River sockeye estimates of run size ##################
+library(tidyverse)
+library(ggrepel)
+#run<-read.table("withKenai.csv", sep = ",", header=T)#input data file with Kenai estimates
+run<-total #input data file with Kenai estimates
+run$date<-as.Date(run$date) #convert charatcter like "2022-07-01" to date
+#ggplot: model fitted vs. actual run
+myplot<-ggplot(run, aes(x= date, y = run.ke)) + 
+  geom_point(color = "blue", size = 2) + 
+  ggtitle("2022 Kenai Sockeye Inseason Estimates Using 5 Best Running Curves") +
+  theme(plot.title = element_text(hjust = 0.5))+
+### geom_label_repel or geom_text_repel
+  geom_text_repel(aes(label = year),
+                   size = 3,   # font size in the text labels
+                   box.padding   = 0.05, 
+                   point.padding = 0.05,
+                   max.overlaps = getOption("ggrepel.max.overlaps", default = 20),
+                   segment.color = 'grey50') +
+  scale_x_date("Date", date_breaks = "2 day", date_labels = "%b%d") +
+ scale_y_continuous("Estimated Run", labels = scales::comma)
+myplot 
