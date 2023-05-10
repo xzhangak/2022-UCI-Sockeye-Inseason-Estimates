@@ -1,6 +1,5 @@
 propRunleft<-function(){
 
-  #setwd("H:/Upper Cook Inlet/Forecasts_RB/Inseason_Forecasts/using R/2022 Inseason/temp")
   #input mean cumulative proportion of run that came from UCI_SOCKEYE_RUN_BY_STOCK_2007-2011.xls by Mark Willette
   propRun<-read.table("cumProportion.csv", sep = ",", header=T) #average of proportions between 2007 and 2011
   #preseason forecasts for 2022 UCI, Kenai, and Kasilof
