@@ -8,7 +8,7 @@ inseason<-function(mydate=mydate){
   #use 1979~2021 historical run timing curve to calculate cumulated proporiton of total run or cpue, y, it is y_yr,d in Equation 5
   #first day is June 24; and last year is July 31.
   firstd<-"6/24"
-  #lastd<-"7/12" #to do inseason estimate before 7/31, just change "lastd", like "7/20"
+  #lastd<-"7/20" #to do inseason estimate as of July 20, a day between 7/1 and 7/31
   n<-as.Date(lastd, format="%m/%d") - as.Date(firstd, format="%m/%d") +1 #total days of test fishery
   n<-as.numeric(n) #total  days of test fishery
   day<-rep(1:n)
@@ -16,7 +16,7 @@ inseason<-function(mydate=mydate){
   m=matrix(NA, nrow=1, ncol=4)
   colnames(m)=c("yr", "lag","total_cpue", "mse") 
   m=as.data.frame(m)
-  #mylag<-(10:-10) #from run 10-day early  to run 10-day late.lag of run as early(>0) or late(<0) as 10 days.
+  #mylag<-(10:-10) #from run 10-day early  to run 10-day late. lag of run as early(>0) or late(<0) as 10 days.
   #mylag<-(5:-5)
   mylag<-0 #assume on-time only
   my.yr<-coefs$year #histrical run curves of 1979~2021
@@ -26,7 +26,7 @@ inseason<-function(mydate=mydate){
     for (lag in mylag){ #
       for (d in 1:n){
         #run may not on time. lag>0: run early; lag<0: run late
-        y[d]<-1/(1+exp(-a-b*(d+lag)))#cumulated proportion by day d of total cpue (ccum cpue by final day).
+        y[d]<-1/(1+exp(-a-b*(d+lag)))#cumulative proportion by day d of total cpue (ccum cpue by final day).
       }
       yh=cbind(day, y) #cumulative proportion of ccpuef, final day of season's ccpue from historic curve 
       colnames(yh)=c("d", "y") #day and proportion
@@ -35,7 +35,7 @@ inseason<-function(mydate=mydate){
       comb=merge(yh, obs.cpue, by="d", all=T)
       comb$sq.ccumCPUE<-with(comb, ccumCPUE^2)
       x<-comb$sq.ccumCPUE
-      comb$ccum.sq.ccumCPUE[!is.na(x)]<-cumsum(na.omit(x))#cumulated values, numerator in equation 6
+      comb$ccum.sq.ccumCPUE[!is.na(x)]<-cumsum(na.omit(x))#cumulative values, numerator in equation 6
       comb$yc<-with(comb, y*ccumCPUE)
       x<-comb$yc
       comb$ccum.yc[!is.na(x)]<-cumsum(na.omit(x)) #denominator in equation 6
@@ -125,7 +125,7 @@ inseason<-function(mydate=mydate){
   out$date<-as.Date(out$date,format="%d-%b")#convert character to date
   lastd<-as.Date(lastd,format="%m/%d") #change date format
   out.D<-out[which(out$date == lastd),] #retrieve inseason estimate at day D=lastd; date=lastd
-  out.D$date<-with(out.D, format(date, format="%m/%d")) #romove meaningless year value from date
+  out.D$date<-with(out.D, format(date, format="%m/%d")) #remove meaningless year value from date
   
   out.D2<-merge(out.D, best5, by.x = "year", by.y="yr")
   
